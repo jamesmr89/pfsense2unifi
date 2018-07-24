@@ -152,14 +152,14 @@ my $client_config = <<"CLIENT_CONFIG";
 dev tun
 persist-tun
 persist-key
-cipher AES-128-CBC
-auth SHA1
+cipher $data->{openvpn}->{'openvpn-server'}->{'crypto'}
+auth $data->{openvpn}->{'openvpn-server'}->{'digest'}
 tls-client
 client
 resolv-retry infinite
-remote 50.245.139.57 1195 udp
+remote $data->{interfaces}->{'wan'}->{ipaddr} $data->{openvpn}->{'openvpn-server'}->{'local_port'} $data->{openvpn}->{'openvpn-server'}->{'protocol'}
 lport 0
-verify-x509-name "Azose Commercial VPN Server" name
+verify-x509-name $data->{openvpn}->{'openvpn-server'}->{'description'} name
 ns-cert-type server
 
 <ca>
