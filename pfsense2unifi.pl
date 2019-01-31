@@ -22,7 +22,7 @@ if (not defined $pfSenseConfig) {
 $xml = new XML::Simple;
 
 # read XML file
-$data = $xml->XMLin($pfSenseConfig);
+$data = $xml->XMLin($pfSenseConfig, ForceArray=>['openvpn-server']);
 
 foreach $server (@{$data->{'openvpn'}->{'openvpn-server'}}) {
 
