@@ -26,6 +26,8 @@ $data = $xml->XMLin($pfSenseConfig, ForceArray=>['openvpn-server']);
 
 foreach $server (@{$data->{'openvpn'}->{'openvpn-server'}}) {
 
+foreach $server (@{$data->{'openvpn'}->{'openvpn-server'}}) {
+
 # determine path for output files
 my $path = $server->{'description'};
 $path =~ s/ /_/g;
