@@ -8,6 +8,19 @@ use MIME::Base64;
 use Net::Netmask;
 use XML::Simple;
 
+sub _calc_netmask {
+    my($subnet) = @_;
+
+    # e.g.: 10.0.0.0/24 192.168.1.0/16
+    my($network, $netbit) = split /\//, $subnet;
+
+    my $_bit         = ( 2 ** (32 - $netbit) ) - 1;
+    my ($full_mask)  = unpack( "N", pack( "C4", 255,255,255,255 ) );
+    my $netmask      = join( '.', unpack( "C4", pack( "N", ( $full_mask ^ $_bit ) ) ) );
+
+    return $network.' '.$netmask;
+}
+
 # Read command-line arguments, exit with usage message in case of error
 GetOptions( 'file=s' => \$pfSenseConfig, 'user=s' => \$user, 'vpnid=i' => \$vpnid )
     or usage(); 
@@ -23,8 +36,6 @@ $xml = new XML::Simple;
 
 # read XML file
 $data = $xml->XMLin($pfSenseConfig, ForceArray=>['openvpn-server']);
-
-foreach $server (@{$data->{'openvpn'}->{'openvpn-server'}}) {
 
 foreach $server (@{$data->{'openvpn'}->{'openvpn-server'}}) {
 
@@ -59,8 +70,8 @@ foreach my $cert (keys $data->{cert}) {
 my $tlskey = decode_base64($server->{tls});
 $tlskey =~ s/\r//g;
 # DH Key 
-#my $dhcmd = "openssl dhparam $server->{'dh_length'} 2>/dev/null";
-#my $dhkey = `$dhcmd`;
+my $dhcmd = "openssl dhparam $server->{'dh_length'} 2>/dev/null";
+my $dhkey = `$dhcmd`;
 
 `mkdir -p $path`;
 # Unifi Config
@@ -90,9 +101,9 @@ close $fh;
 "--auth $server->{'digest'}",
 "--tls-auth /config/auth/keys/tls-auth 0",
 "--cipher $server->{'crypto'}",
-"--proto $server->{'protocol'}",
+"--proto ".lc $server->{'protocol'},
 "--port $server->{'local_port'}",
-"--push route $server->{'local_network'}"
+"--push route "._calc_netmask($server->{'local_network'})
 );
 
 if ($server->{'dns_domain'}) {
@@ -108,7 +119,7 @@ if ($server->{'dns_server2'}) {
 %openvpn_config = (
 	'mode'=> 'server',
 	'server'=> {
-		'subnet'=> $server->{'local_network'}
+		'subnet'=> $server->{'tunnel_network'}
 	},
 	'openvpn-option'=> \@openvpn_options,
 	'tls'=> {
