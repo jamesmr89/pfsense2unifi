@@ -5,13 +5,16 @@
 
 #### Usage:
 ##### To generate the Unifi Configuration
-+ perl pfsense2unifi.pl --file <pfsense_xml> > vpn.sh
++ perl pfsense2unifi.pl --file <pfsense_xml> --vpnid <pfsense_vpnid>
++ cd <folder created from above>
 + scp vpn.sh admin@unifi_ip:/tmp/vpn.sh
 + ssh into unifi and run the following:
-+ configure
-+ source /tmp/vpn.sh
-+ commit
-+ save
++ sudo sh /tmp/vpn.sh
 
-##### To add another user (Must do above first): 
-+ perl pfsense2unifi.pl --file <pfsense_xml> --user <username>
+Add the created config.gateway.json to the /data/sites folder on the controller
+
+Force a provision on the gateway from the controller.
+
+You can add users via certs on the pfsense box, and use the client export tool for client configs.
+
+I've been using this setup and have a few OpenVpn servers configured on pfSense all on different ports that are used to generate the configs for multiple USG's (I disable the servers after configuration)
